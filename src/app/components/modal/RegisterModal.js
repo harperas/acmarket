@@ -1,41 +1,77 @@
 "use client";
 
-import { useState } from "react";
-import { Button, Form, Modal } from "rsuite";
+import { useRef, useState } from "react";
+import { Button, Form, Modal, Schema } from "rsuite";
 import { useToast } from "../../context/ToastProvider";
+
+const registerFormInitialValue = {
+  name: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+};
+
+// model schema to check required data to be fill in form
+const { StringType } = Schema.Types;
+
+const registerModel = Schema.Model({
+  name: StringType().isRequired("Name is required"),
+  email: StringType()
+    .isEmail("Enter a valid email")
+    .isRequired("Email is required"),
+  password: StringType()
+    .minLength(6, "Password should be atleast six character long")
+    .isRequired("Password is required"),
+  confirmPassword: StringType()
+    .minLength(6, "Password should be atleast six character long")
+    .isRequired("Password is required"),
+});
 
 const RegisterModal = ({ registerModalShow, setRegisterModalShow }) => {
   const toast = useToast();
 
-  const [registerForm, setRegisterForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
+  const registerRef = useRef();
+
+  const [registerForm, setRegisterForm] = useState(registerFormInitialValue);
 
   const handleRegisterSubmit = async () => {
     // Perform registration logic here (e.g., API call)
     console.log("Register:", registerForm);
 
-    try {
-      const res = await fetch("http://localhost/acmarket/api/register.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(registerForm),
-      });
-      const data = await res.json();
-      console.log("Response:", data);
-      if (res.ok) {
-        toast.success("Registration successful!");
-        // alert('Registration successful!');
-        setRegisterModalShow(false); // Close the modal on successful registration
-      } else {
-        toast.error(data.message || "Registration failed");
-        // alert(data.message || 'Registration failed');
+    //check form schema model has and any error
+    if (registerRef.current.check()) {
+      // check password and confirm password
+      if (registerForm.password !== registerForm.confirmPassword) {
+        toast.error("Password and Confirm Password must be same");
+
+        return;
       }
-    } catch (error) {
-      console.error("Error:", error);
+
+      try {
+        const res = await fetch(
+          "http://localhost/acmarket/api/auth/register.php",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(registerForm),
+          }
+        );
+        const data = await res.json();
+        console.log("Response:", data);
+        if (res.ok) {
+          toast.success("Registration successful!");
+          // alert('Registration successful!');
+          setRegisterForm(registerFormInitialValue);
+          setRegisterModalShow(false); // Close the modal on successful registration
+        } else {
+          toast.error(data.message || "Registration failed");
+          // alert(data.message || 'Registration failed');
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    } else {
+      toast.error("Fill all the required data");
     }
   };
 
@@ -47,9 +83,17 @@ const RegisterModal = ({ registerModalShow, setRegisterModalShow }) => {
         onClose={() => setRegisterModalShow(false)}
       >
         <Modal.Header>
-          <Modal.Title>Register</Modal.Title>
+          <Modal.Title className=" text-center text-5xl font-bold ">
+            Register
+          </Modal.Title>
           <Modal.Body>
-            <Form fluid onChange={setRegisterForm} formValue={registerForm}>
+            <Form
+              fluid
+              onChange={setRegisterForm}
+              formValue={registerForm}
+              model={registerModel}
+              ref={registerRef}
+            >
               <Form.Group controlId="name-1">
                 <Form.ControlLabel>Name</Form.ControlLabel>
                 <Form.Control

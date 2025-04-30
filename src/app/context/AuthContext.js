@@ -50,8 +50,10 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
+  console.log(user);
+
   const login = async (email, password) => {
-    const res = await fetch("http://localhost/acmarket/api/login.php", {
+    const res = await fetch("http://localhost/acmarket/api/auth/login.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),

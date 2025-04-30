@@ -1,28 +1,50 @@
 "use client";
 
-import { useState } from "react";
-import { Button, Form, Modal } from "rsuite";
+import { useRef, useState } from "react";
+import { Button, Form, Modal, Schema } from "rsuite";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "@/app/context/ToastProvider";
+
+const loginFormInitialValue = {
+  email: "",
+  password: "",
+};
+
+// model schema to check required data to be fill in form
+const { StringType } = Schema.Types;
+
+const loginModel = Schema.Model({
+  email: StringType()
+    .isEmail("Enter a valid email")
+    .isRequired("Email is required"),
+  password: StringType()
+    .minLength(4, "Password should be atleast six character long")
+    .isRequired("Password is required"),
+});
 
 const LoginModal = ({ loginModalShow, setLoginModalShow }) => {
-  const [loginFormValue, setLoginFormValue] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
+  const [loginFormValue, setLoginFormValue] = useState(loginFormInitialValue);
 
   const { login } = useAuth();
+
+  const toast = useToast();
+  const loginRef = useRef();
 
   // console.log('loginFormValue', loginFormValue);
 
   const handleLoginSubmit = async () => {
     console.log("Login:", loginFormValue);
 
-    login(loginFormValue.email, loginFormValue.password).then((res) => {
-      if (res) {
-        setLoginModalShow(false); // Close the modal on successful login
-      }
-    });
+    if (loginRef.current.check()) {
+      login(loginFormValue.email, loginFormValue.password).then((res) => {
+        if (res) {
+          setLoginFormValue(loginFormInitialValue);
+          setLoginModalShow(false); // Close the modal on successful login
+        }
+      });
+    } else {
+      toast.error("Fill all the required data");
+    }
   };
 
   return (
@@ -35,10 +57,18 @@ const LoginModal = ({ loginModalShow, setLoginModalShow }) => {
         size="xs"
       >
         <Modal.Header>
-          <Modal.Title>Login</Modal.Title>
+          <Modal.Title className=" text-center text-5xl font-bold ">
+            Login
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form fluid onChange={setLoginFormValue} formValue={loginFormValue}>
+          <Form
+            fluid
+            onChange={setLoginFormValue}
+            formValue={loginFormValue}
+            model={loginModel}
+            ref={loginRef}
+          >
             <Form.Group controlId="email-9">
               <Form.ControlLabel>Email</Form.ControlLabel>
               <Form.Control name="email" type="email" />
