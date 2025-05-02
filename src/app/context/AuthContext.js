@@ -88,8 +88,35 @@ export const AuthProvider = ({ children }) => {
     return fetch(url, { ...options, headers });
   };
 
+  const loginWithGoogle = async (googleToken) => {
+    try {
+      const res = await fetch(
+        "http://localhost/acmarket/api/auth/google-login.php",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: googleToken }),
+        }
+      );
+
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem("token", data.token);
+        setToken(data.token);
+        toast.success("Google Login Successful");
+      } else {
+        toast.error(data.message || "Google login failed");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong");
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, authFetch }}>
+    <AuthContext.Provider
+      value={{ user, login, logout, authFetch, loginWithGoogle }}
+    >
       {children}
     </AuthContext.Provider>
   );
