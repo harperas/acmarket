@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastProvider";
 import { useEffect, useState } from "react";
+import { Loader, Placeholder } from "rsuite";
 
 const CheckAuth = ({ children }) => {
   const { user } = useAuth();
@@ -38,7 +39,12 @@ const CheckAuth = ({ children }) => {
 
   // Prevent rendering the children while user state is still being initialized
   if (loading) {
-    return <div>Loading...</div>; // Or a loading spinner
+    return (
+      <div>
+        <Placeholder.Grid rows={20} active />
+        <Loader center content="Loading" />
+      </div>
+    ); // Or a loading spinner
   }
 
   if (!user) {

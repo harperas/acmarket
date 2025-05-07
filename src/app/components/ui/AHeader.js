@@ -62,7 +62,7 @@ const AHeader = () => {
               placement="bottomEnd"
               trigger="hover"
             >
-              <Dropdown.Item>Orders</Dropdown.Item>
+              <Dropdown.Item>Dashboard</Dropdown.Item>
               <Dropdown.Item
                 onClick={() => {
                   logout();
